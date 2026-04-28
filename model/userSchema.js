@@ -1,0 +1,62 @@
+const mongoose= require("mongoose")
+const{Schema}=mongoose
+const userSchema= new Schema({
+  firstName:{
+    type:String,
+  },
+  lastName:{
+    type:String,
+  },
+  email:{
+    type:String,
+  },
+  phoneNumber:{
+    type:String,
+  },
+  terms:{
+    type:Boolean,
+  },
+  isHold:{
+    type:Boolean,
+  },
+  password:{
+    type:String,
+  },
+  isHold:{
+    type:Boolean,
+  },
+  isVeryfi:{
+    type:Boolean,
+    default:false
+  },
+  role:{
+    type:String,
+    enum:['admin','user','editor','vendor']
+  },
+  billingAddres:{
+   firstName:{
+    type:String,
+  },
+  lastName:{
+    type:String,
+  },
+  companyName:{
+    type:String,
+  },
+  street:{
+    type:String,
+  },
+  zipCode:{
+    type:String,
+  },
+  phone:{
+    type:String,
+  },
+  country:{
+    type:String,
+  },
+  }
+
+})
+
+module.exports= mongoose.model("User",userSchema)
