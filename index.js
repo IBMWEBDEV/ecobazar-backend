@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require("express")
 const app = express()
 const cors = require('cors')
@@ -11,9 +12,10 @@ app.use(cors())
 dbConfig()
 
 app.get("/", (req, res) => {
-    res.send("ibrahim")
+    res.send("ggggggg")
 })
 
+let port = process.env.PORT || 5000
 app.listen(5000, () => {
-    console.log("Server running on port 5000")
+    console.log(`Server running on port 5000 ${port}`)
 })
