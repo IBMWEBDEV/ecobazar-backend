@@ -3,13 +3,15 @@ const User = require('../models/userModels')
 const { emptyFieldValidation } = require("../utils/validation")
 const tokenGenerator = require("../utils/tokenGenerator")
 const existingData = require("../utils/existingData")
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 
 let registrationController = async(req, res) => {
     const { email, password, confirmPassword, terms } = req.body
 
     let users = await existingData(res, { email: email })
     if (users) {
-        return
+        return res.send({ message: "User exist" })
     }
 
     if (!terms) {
@@ -23,9 +25,11 @@ let registrationController = async(req, res) => {
         return res.send({ message: "password no matched" })
     }
 
+    const hash = bcrypt.hashSync(password, 10);
+
     let user = new User({
         email: email,
-        password: password,
+        password: hash,
         terms: terms
     })
 
@@ -41,49 +45,106 @@ let registrationController = async(req, res) => {
     res.send({ message: "Registration Successfull" })
 
 }
-module.exports = { registrationController }
 
 
-// const { mailVerification } = require("../utils/email")
-// const User = require('../models/userModels')
-// const { emptyFieldValidation } = require("../utils/validation")
-// const tokenGenerator = require("../utils/tokenGenerator")
-// const existingData = require("../utils/existingData")
+let login = async(req, res) => {
+    const { email, password } = req.body
 
-// let registrationController = async(req, res) => {
-//     const { email, password, confirmPassword, terms } = req.body
+    let users = await User.findOne({ email: email });
+    if (!users) {
+        return res.send({ message: "User not found" })
+    }
+    emptyFieldValidation(res, email, password)
 
-//     if (await existingData({ email: email })) {
-//         return res.send({ message: "User already exists" });
-//     }
+    let pass = bcrypt.compareSync(password, users.password);
 
-//     if (!terms) {
-//         return res.send({ message: "Please Accept Our Terms and Condition" })
-//     }
+    if (!pass) {
+        return res.send({ message: "Invalid Credential" })
+    }
+    res.send({
+        message: "Login Successfull"
+    })
+
+}
+
+let forgotPassword = async(req, res) => {
+    let { email } = req.body
+    emptyFieldValidation(res, email)
+    let users = await existingData(res, { email: email })
+    if (!users) {
+        return res.send({ message: "User not found" })
+    }
 
 
-//     emptyFieldValidation(res, email, password, confirmPassword)
+    let token = tokenGenerator({
+        id: users.id,
+        email: users.email
+    }, process.env.ACCESS_TOKEN_SECRET, "1d")
 
-//     if (password !== confirmPassword) {
-//         return res.send({ message: "password no matched" })
-//     }
+    resetPasswordMail(token, email)
 
-//     let user = new User({
-//         email: email,
-//         password: password,
-//         terms: terms
-//     })
+    res.send({ message: "Please check your email" })
 
-//     await user.save();
+}
 
-//     const token = tokenGenerator({
-//         id: user.id,
-//         email: user.email
-//     }, process.env.ACCESS_TOKEN_SECRET, "1d")
+let resetpassword = (req, res) => {
+    let { newPassword, confirmPassword } = req.body
+    let { token } = req.params
 
-//     await mailVerification(token, email);
+    if (newPassword !== confirmPassword) {
+        return res.send({ message: "Confirm password not matched" })
+    }
 
-//     res.send({ message: "Registration Successfull" })
 
-// }
-// module.exports = { registrationController }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
+        if (err) {
+            res.send({ message: "Unauthorization" })
+        } else {
+            const hash = bcrypt.hashSync(newPassword, 10);
+            const updateData = User.findByIdAndUpdate({ _id: decoded.id }, { password: newPassword })
+            res.send({ message: "Password Updated" })
+        }
+    });
+
+}
+
+let resendVerificationEmail = async(req, res) => {
+    let { email } = req.body
+
+    let user = await User.findOne({ email: email })
+
+    let token = tokenGenerator({
+        id: user.id,
+        email: user.email
+    }, process.env.ACCESS_TOKEN_SECRET, "1d")
+
+
+    mailVerificationEmail(token, email)
+
+    res.send({ message: "Check your email for verification" })
+}
+
+let verifyEmailController = async(req, res) => {
+    const { token } = req.params
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async function(err, decoded) {
+        if (err) {
+            return res.send({ message: "Unauthorized" })
+        } else {
+            const userId = decoded.id;
+            let findUser = await User.findById(userId);
+            if (findUser.isVerified) {
+                return res.send({ message: "User already verified" });
+            } else {
+                findUser.isVerified = true;
+                await findUser.save();
+                return res.send({ message: "Email verified successfully" });
+            }
+        }
+
+    })
+}
+
+
+
+module.exports = { registrationController, login, forgotPassword, resetpassword, resendVerificationEmail, verifyEmailController }
