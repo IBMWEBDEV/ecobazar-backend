@@ -121,7 +121,7 @@ let resendVerificationEmail = async(req, res) => {
     }, process.env.ACCESS_TOKEN_SECRET, "1d")
 
 
-    mailVerificationEmail(token, email)
+    mailVerification(token, email)
 
     res.send({ message: "Check your email for verification" })
 }
