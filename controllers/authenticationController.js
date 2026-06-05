@@ -1,4 +1,5 @@
-const { mailVerification } = require("../utils/email")
+// const { mailVerification } = require("../utils/email")
+const { mailVerification, resetPasswordMail, mailVerificationEmail } = require("../utils/email")
 const User = require('../models/userModels')
 const { emptyFieldValidation } = require("../utils/validation")
 const tokenGenerator = require("../utils/tokenGenerator")
@@ -70,7 +71,7 @@ let login = async(req, res) => {
 let forgotPassword = async(req, res) => {
     let { email } = req.body
     emptyFieldValidation(res, email)
-    let users = await existingData(res, { email: email })
+    let users = await User.findOne({ email: email });
     if (!users) {
         return res.send({ message: "User not found" })
     }
@@ -96,13 +97,14 @@ let resetpassword = (req, res) => {
     }
 
 
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async function(err, decoded) {
         if (err) {
             res.send({ message: "Unauthorization" })
         } else {
             const hash = bcrypt.hashSync(newPassword, 10);
-            const updateData = User.findByIdAndUpdate({ _id: decoded.id }, { password: newPassword })
-            res.send({ message: "Password Updated" })
+            console.log(decoded)
+            const updateData = await User.findByIdAndUpdate({ _id: decoded.id }, { password: hash }, { new: true })
+            res.send({ message: "Password Updated", updateData })
         }
     });
 
