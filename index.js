@@ -9,6 +9,11 @@ const dbConfig = require("./config/dbConfig")
 const { registrationController, loginController, forgotPasswordController, resetPasswordController, resendVerificationEmailController, verifyEmailController } = require('./controllers/authenticationController');
 const { getAllUsersController, singleUserDataController, deleteUserController, updateUserController } = require('./controllers/userController');
 const { createProductController, getProductController, getSingleProductController, productDeleteController, productUpdateController } = require('./controllers/productController');
+const axios = require('axios')
+
+
+
+
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, '/uploads/products'),
@@ -41,6 +46,25 @@ app.get('/singleproduct/:id', getSingleProductController)
 app.delete('/deleteproduct/:id', productDeleteController)
 app.post('/updateproduct/:id', upload.array('photos', 5), productUpdateController)
 
+
+//Payment
+app.post('/payment', async function(req, res) {
+
+    let data = await axios.post('https://sandbox.aamarpay.com/jsonpost.php', {
+        store_id: "aamarpaytest",
+        signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
+        ...req.body,
+        tran_id: Date.now(),
+        currency: "BDT",
+        success_url: "https://example.com/success.php",
+        fail_url: "https://example.com/fail.php",
+        cancel_url: "https://example.com/cancel.php",
+        desc: "Lend Money",
+        type: "json"
+    })
+    res.send(data.data)
+
+})
 
 //Order Management
 
