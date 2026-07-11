@@ -1,4 +1,4 @@
-// require('node:dns').setServers(['1.1.1.1','8.8.8.8']);
+require('node:dns').setServers(['1.1.1.1', '8.8.8.8']);
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 require('dotenv').config()
@@ -9,6 +9,7 @@ const dbConfig = require("./config/dbConfig")
 const { registrationController, loginController, forgotPasswordController, resetPasswordController, resendVerificationEmailController, verifyEmailController } = require('./controllers/authenticationController');
 const { getAllUsersController, singleUserDataController, deleteUserController, updateUserController } = require('./controllers/userController');
 const { createProductController, getProductController, getSingleProductController, productDeleteController, productUpdateController } = require('./controllers/productController');
+const { createCart, increDecre, prodelete, getCart } = require('./controllers/cartController');
 const axios = require('axios')
 
 
@@ -65,6 +66,12 @@ app.post('/payment', async function(req, res) {
     res.send(data.data)
 
 })
+
+//Cart Management
+app.post('/cart/create', createCart)
+app.post('/cart/update/:id', increDecre)
+app.get('/cart/:userId', getCart)
+app.delete('/cart/:id', prodelete)
 
 //Order Management
 

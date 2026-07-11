@@ -23,7 +23,7 @@ const productSchema = new Schema({
         default: 0
     },
     sku: {
-        type: Number,
+        type: String,
         required: true,
         unique: true,
     },
