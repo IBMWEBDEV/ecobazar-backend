@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Cart = require('../models/cartModel');
-
+const Order = require('../models/orderModel')
 const paymentController = async(req, res) => {
     const { userId, cus_name, cus_email, cus_add1, cus_add2, cus_city, cus_state, cus_postcode, cus_phone } = req.body;
 
@@ -8,17 +8,28 @@ const paymentController = async(req, res) => {
         const cart = await Cart.find({ user: userId }).populate('product')
         let totalPrice = 0
 
+        let pro = []
         cart.map(item => {
-            // console.log(item)
-            totalPrice += item.totalPrice
-        })
-        console.log(totalPrice)
 
-        const amount = cart.reduce((acc, item) => acc + item.totalPrice, 0);
+                pro.push({
+                    title: item.product.title,
+                    price: item.product.price,
+                    sku: item.product.sku,
+                    quantity: item.quantity,
+                    totalPrice: item.totalPrice
+                })
+
+
+                totalPrice += item.totalPrice
+            })
+            // res.send({
+            //     product: pro,
+            //     totalPrice: totalPrice
+            // })
 
         const paymentData = {
             store_id: "aamarpaytest",
-            tran_id: Date.now(),
+            tran_id: 3454654,
             success_url: "http://www.merchantdomain.com/successpage.html",
             fail_url: "http://www.merchantdomain.com/failedpage.html",
             cancel_url: "http://www.merchantdomain.com/cancelpage.html",
@@ -46,6 +57,15 @@ const paymentController = async(req, res) => {
                 },
             }
         );
+
+        const order = new Order({
+            user: userId,
+            products: pro,
+            totalPrice: totalPrice,
+            tranid: "3454654"
+        })
+
+        await order.save()
 
         res.json(response.data);
 
