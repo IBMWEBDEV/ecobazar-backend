@@ -1,0 +1,69 @@
+const axios = require('axios');
+const Cart = require('../models/cartModel');
+
+const paymentController = async(req, res) => {
+    const { userId, cus_name, cus_email, cus_add1, cus_add2, cus_city, cus_state, cus_postcode, cus_phone } = req.body;
+
+    try {
+        const cart = await Cart.find({ user: userId }).populate('product')
+        let totalPrice = 0
+
+        cart.map(item => {
+            // console.log(item)
+            totalPrice += item.totalPrice
+        })
+        console.log(totalPrice)
+
+        const amount = cart.reduce((acc, item) => acc + item.totalPrice, 0);
+
+        const paymentData = {
+            store_id: "aamarpaytest",
+            tran_id: Date.now(),
+            success_url: "http://www.merchantdomain.com/successpage.html",
+            fail_url: "http://www.merchantdomain.com/failedpage.html",
+            cancel_url: "http://www.merchantdomain.com/cancelpage.html",
+            amount: totalPrice,
+            currency: "BDT",
+            signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
+            desc: "Merchant Registration Payment",
+            cus_name: cus_name,
+            cus_email: cus_email,
+            cus_add1: cus_add1,
+            cus_add2: cus_add2,
+            cus_city: cus_city,
+            cus_state: cus_state,
+            cus_postcode: cus_postcode,
+            cus_country: "Bangladesh",
+            cus_phone: cus_phone,
+            type: "json",
+        };
+
+        const response = await axios.post(
+            "https://sandbox.aamarpay.com/jsonpost.php",
+            paymentData, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        res.json(response.data);
+
+    } catch (error) {
+
+        let errorMessage = error.message;
+        if (error.response && error.response.data) {
+            errorMessage = error.response.data;
+        }
+
+        console.error(errorMessage);
+
+        res.status(500).json({
+            success: false,
+            message: "Payment request failed",
+            error: errorMessage,
+        });
+    }
+};
+
+module.exports = { paymentController };

@@ -23,6 +23,7 @@ const createProductController = async(req, res) => {
 
 
 const getProductController = async(req, res) => {
+
     try {
         let product = await Product.find({})
 
@@ -39,6 +40,7 @@ const getProductController = async(req, res) => {
 
     }
 }
+
 
 
 const getSingleProductController = async(req, res) => {

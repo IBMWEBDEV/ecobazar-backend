@@ -10,7 +10,8 @@ const { registrationController, loginController, forgotPasswordController, reset
 const { getAllUsersController, singleUserDataController, deleteUserController, updateUserController } = require('./controllers/userController');
 const { createProductController, getProductController, getSingleProductController, productDeleteController, productUpdateController } = require('./controllers/productController');
 const { createCart, increDecre, prodelete, getCart } = require('./controllers/cartController');
-const axios = require('axios')
+const axios = require('axios');
+const { paymentController } = require('./controllers/paymentController');
 
 
 
@@ -45,27 +46,27 @@ app.post('/createproduct', upload.array('photos', 5), createProductController);
 app.get('/allproduct', getProductController)
 app.get('/singleproduct/:id', getSingleProductController)
 app.delete('/deleteproduct/:id', productDeleteController)
-app.post('/updateproduct/:id', upload.array('photos', 5), productUpdateController)
+app.put('/updateproduct/:id', upload.array('photos', 5), productUpdateController)
 
 
 //Payment
-app.post('/payment', async function(req, res) {
+// app.post('/payment', async function(req, res) {
 
-    let data = await axios.post('https://sandbox.aamarpay.com/jsonpost.php', {
-        store_id: "aamarpaytest",
-        signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
-        ...req.body,
-        tran_id: Date.now(),
-        currency: "BDT",
-        success_url: "https://example.com/success.php",
-        fail_url: "https://example.com/fail.php",
-        cancel_url: "https://example.com/cancel.php",
-        desc: "Lend Money",
-        type: "json"
-    })
-    res.send(data.data)
+//     let data = await axios.post('https://sandbox.aamarpay.com/jsonpost.php', {
+//         store_id: "aamarpaytest",
+//         signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
+//         ...req.body,
+//         tran_id: Date.now(),
+//         currency: "BDT",
+//         success_url: "https://example.com/success.php",
+//         fail_url: "https://example.com/fail.php",
+//         cancel_url: "https://example.com/cancel.php",
+//         desc: "Lend Money",
+//         type: "json"
+//     })
+//     res.send(data.data)
 
-})
+// })
 
 //Cart Management
 app.post('/cart/create', createCart)
@@ -74,6 +75,7 @@ app.get('/cart/:userId', getCart)
 app.delete('/cart/:id', prodelete)
 
 //Order Management
+app.post('/payment', paymentController)
 
 //user management
 app.get('/allusers', getAllUsersController)
